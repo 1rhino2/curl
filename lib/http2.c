@@ -862,6 +862,10 @@ static int push_promise(struct Curl_cfilter *cf,
       rv = CURL_PUSH_DENY;
       goto fail;
     }
+    /* the push is for the same origin, give the new handle that origin.
+       Nothing else in a pushed transfer sets it and the response header
+       parsing reads it for cookies and HSTS */
+    Curl_peer_link(&newhandle->state.origin, data->state.origin);
 
     {
       struct Curl_mapi_guard guard;
