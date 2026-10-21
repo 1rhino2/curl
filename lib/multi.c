@@ -1767,6 +1767,17 @@ CURLMcode Curl_multi_add_perform(struct Curl_multi *multi,
       return CURLM_INTERNAL_ERROR;
     }
 
+    /* a pushed transfer skips the INIT and SETUP states, so stamp the
+       timers those states set and arm the timeout, or every timeout and
+       speed value for it counts from zero */
+    {
+      const struct curltime *pnow = Curl_pgrs_now(data);
+      Curl_pgrsTimeWas(data, TIMER_STARTOP, *pnow);
+      Curl_pgrsTimeWas(data, TIMER_STARTSINGLE, *pnow);
+      if(data->set.timeout)
+        Curl_expire_set(data, EXPIRE_TIMEOUT, data->set.timeout, pnow);
+    }
+
     /* take this handle to the perform state right away */
     multistate(data, MSTATE_PERFORMING);
     Curl_attach_connection(data, conn, TRUE);
